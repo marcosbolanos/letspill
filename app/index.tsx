@@ -1,18 +1,19 @@
 import { Text, View } from "react-native";
 import { StyleSheet } from "react-native";
 
-import Pill from '../components/pill';
+import Blister from '../components/blister';
 
 export default function Index() {
+  const now = new Date();
   return (
-    <View>
+    <View style={styles.mainView}>
       <View>
         <Text style={styles.title}>Let's
           <Text style={title2}> Pill</Text>
         </Text>
       </View>
-      <View>
-        <Pill />
+      <View style={styles.blister}>
+        <Blister startDate={now} />
       </View>
     </View>
   );
@@ -25,8 +26,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     // @ts-ignore
     fontWeight: 'bold',
-    paddingTop: '1em'
+    marginBottom: '2rem'
   },
+  blister: {
+    marginHorizontal: '1rem',
+    marginVertical: '1rem',
+    maxHeight: '80%',
+    maxWidth: '100%',
+  },
+  mainView: {
+    backgroundColor: 'beige',
+    maxHeight: '100%',
+    padding: '2rem',
+    flex: 1
+  }
 });
 
 const title2 = StyleSheet.compose(styles.title, {
