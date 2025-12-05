@@ -1,27 +1,18 @@
-import { betterAuth } from 'better-auth';
+import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from './db'
+import { db } from "./db";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: 'pg',
+    provider: "pg",
   }),
-  trustedOrigins: ["http://localhost:3000"],
+  emailAndPassword: {
+    enabled: true,
+  },
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    },
-  },
-  advanced: {
-    cookies: {
-      state: {
-        attributes: {
-          sameSite: "none",
-          secure: true
-        }
-      }
     }
   }
 });
-export type AuthClient = typeof auth
