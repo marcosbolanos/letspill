@@ -5,7 +5,7 @@ export default function SocialSignIn() {
   const handleLogin = async () => {
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/" // this will be converted to a deep link (eg. `myapp://dashboard`) on native
+      callbackURL: "/login/redirect"
     })
   };
   return <Button title="Login with Google" onPress={handleLogin} />;

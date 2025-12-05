@@ -5,6 +5,11 @@ import { auth } from '../lib/auth';
 
 import 'dotenv/config';
 
+import loginController from './login/login-controller'
+import sessionController from './session/session-controller'
+import sessionMiddleware from './session/session-middleware'
+
+// This is the root hono object that will define all routes
 const app = new Hono<{
   Variables: {
     user: typeof auth.$Infer.Session.user | null;
@@ -12,23 +17,15 @@ const app = new Hono<{
   }
 }>();
 
-app.use("*", async (c, next) => {
-  const session = await auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session) {
-    c.set("user", null);
-    c.set("session", null);
-    await next();
-    return;
-  }
-  c.set("user", session.user);
-  c.set("session", session.session);
-  await next();
-});
+// Session middleware, this makes user and session available in every request's context
+app.use("*", sessionMiddleware);
 
+// CORS middleware for the Better Auth routes, /api/auth/*
+// This sets the allowed origins for /api/auth and subroutes
 app.use(
   "/api/auth/*", // or replace with "*" to enable cors for all routes
   cors({
-    origin: "http://localhost:8081", // replace with your origin
+    origin: process.env.FRONTEND_URL!,
     allowHeaders: ["Content-Type", "Authorization"],
     allowMethods: ["POST", "GET", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
@@ -37,25 +34,24 @@ app.use(
   }),
 );
 
+// Better Auth configuration : we reroute all GET and POST to its handler
 app.on(["POST", "GET"], "/api/auth/*", (c) => {
   return auth.handler(c.req.raw);
 });
 
+// Hello world route to test if it's working
 app.get('/', (c) => {
   return c.text('Hello Hono!')
 })
 
-app.get("/session", (c) => {
-  const session = c.get("session")
-  const user = c.get("user")
+// Here's where we add all our controllers to the main router
 
-  if (!user) return c.body(null, 401);
+// This one is responsible for redirecting the user after logging in
+app.route('/login', loginController)
+// This one provides session info, useful for sanity checking
+app.route('/session', sessionController)
 
-  return c.json({
-    session,
-    user
-  });
-});
+export default app;
 
 serve({
   fetch: app.fetch,
