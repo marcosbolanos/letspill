@@ -1,12 +1,9 @@
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { drizzle } from 'drizzle-orm/node-postgres';
 import { auth } from '../lib/auth';
 
 import 'dotenv/config';
-
-export const db = drizzle(process.env.DATABASE_URL!);
 
 const app = new Hono<{
   Variables: {
@@ -31,7 +28,7 @@ app.use("*", async (c, next) => {
 app.use(
   "/api/auth/*", // or replace with "*" to enable cors for all routes
   cors({
-    origin: "http://localhost:3001", // replace with your origin
+    origin: "http://localhost:8081", // replace with your origin
     allowHeaders: ["Content-Type", "Authorization"],
     allowMethods: ["POST", "GET", "OPTIONS"],
     exposeHeaders: ["Content-Length"],

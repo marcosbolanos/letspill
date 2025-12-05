@@ -1,21 +1,12 @@
-import { router } from 'expo-router';
-import { Text, View } from 'react-native';
+import { Button } from "react-native";
+import { authClient } from "@/utils/auth-client";
 
-import { useSession } from '@/utils/ctx';
-
-export default function SignIn() {
-  const { signIn } = useSession();
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text
-        onPress={() => {
-          signIn('google');
-          // Navigate after signing in. You may want to tweak this to ensure sign-in is
-          // successful before navigating.
-          router.replace('/');
-        }}>
-        Sign In
-      </Text>
-    </View>
-  );
+export default function SocialSignIn() {
+  const handleLogin = async () => {
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/" // this will be converted to a deep link (eg. `myapp://dashboard`) on native
+    })
+  };
+  return <Button title="Login with Google" onPress={handleLogin} />;
 }
