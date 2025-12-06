@@ -1,11 +1,19 @@
 import { useState } from 'react';
 import { Modal, StyleSheet, Pressable, View, Text } from 'react-native';
+import { authClient } from '@/utils/auth-client';
+import { useAuth } from '@/utils/ctx';
 import AntDesign from '@expo/vector-icons/AntDesign';
 
-import { useSession } from '@/utils/ctx';
 
 const settingsModal = ({ onRequestClose, visible = true }: { onRequestClose: Function, visible?: boolean }) => {
-  const { signOut } = useSession()
+  const signOut = async () => await authClient.signOut()
+  const { session } = useAuth();
+  let email;
+  if (session) {
+    email = session.user.email
+  } else {
+    email = "Email not found. This is a bug, contact the devs"
+  }
 
   return (
     <Modal
@@ -15,7 +23,7 @@ const settingsModal = ({ onRequestClose, visible = true }: { onRequestClose: Fun
       onRequestClose={onRequestClose}
       style={styles.modal}
     >
-      <View style={styles.outerView}>
+      <Text style={styles.outerView}>
         <View style={styles.innerView}>
           <Pressable style={styles.closeButton} onPress={onRequestClose}>
             <AntDesign name="close" size={24} color="black" />
@@ -23,6 +31,7 @@ const settingsModal = ({ onRequestClose, visible = true }: { onRequestClose: Fun
           <Text style={styles.titleText}>
             Settings
           </Text>
+          <Text>Signed in as {email}</Text>
           <Text
             onPress={() => {
               // The `app/(app)/_layout.tsx` will redirect to the sign-in screen.
@@ -31,7 +40,7 @@ const settingsModal = ({ onRequestClose, visible = true }: { onRequestClose: Fun
             Sign Out
           </Text>
         </View>
-      </View>
+      </Text>
     </Modal>
   )
 }
