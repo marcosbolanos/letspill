@@ -4,6 +4,7 @@ import { authClient } from '@/utils/auth-client';
 import { useAuth } from '@/utils/ctx';
 import { GestureResponderEvent } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { Button } from '@/components/ui/button'
 
 
 const settingsModal = ({ onRequestClose, visible = true }: { onRequestClose: (event: GestureResponderEvent) => void, visible?: boolean }) => {
@@ -22,9 +23,8 @@ const settingsModal = ({ onRequestClose, visible = true }: { onRequestClose: (ev
       transparent
       visible={visible}
       onRequestClose={onRequestClose}
-      style={styles.modal}
     >
-      <Text style={styles.outerView}>
+      <View style={styles.outerView}>
         <View style={styles.innerView}>
           <Pressable style={styles.closeButton} onPress={onRequestClose}>
             <AntDesign name="close" size={24} color="black" />
@@ -32,16 +32,12 @@ const settingsModal = ({ onRequestClose, visible = true }: { onRequestClose: (ev
           <Text style={styles.titleText}>
             Settings
           </Text>
-          <Text>Signed in as {email}</Text>
-          <Text
-            onPress={() => {
-              // The `app/(app)/_layout.tsx` will redirect to the sign-in screen.
-              signOut();
-            }}>
-            Sign Out
-          </Text>
+          <Text style={styles.settingsText}>Signed in as {email}</Text>
+          <Button onPress={() => { signOut() }} >
+            Sign out
+          </Button>
         </View>
-      </Text>
+      </View>
     </Modal>
   )
 }
@@ -49,7 +45,8 @@ export default settingsModal
 
 const styles = StyleSheet.create({
   modal: {
-    padding: 20
+    padding: 20,
+    flex: 1,
   },
   outerView: {
     margin: 38
@@ -68,7 +65,12 @@ const styles = StyleSheet.create({
     fontFamily: "Inter 18pt Black",
     fontWeight: 800,
     textAlign: "center",
-    fontSize: 25
+    fontSize: 25,
+    marginBottom: 40
+  },
+  settingsText: {
+    padding: 10,
+
   },
   closeButton: {
     marginLeft: "auto",

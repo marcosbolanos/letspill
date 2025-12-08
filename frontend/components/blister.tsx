@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Text, StyleSheet, View, Pressable, Platform } from "react-native";
 import Svg, { Path, ForeignObject } from "react-native-svg";
 import Pill from "./pill"
@@ -12,12 +11,12 @@ function formatDate(date: Date) {
   return formattedDate;
 }
 
-const Blister = ({ startDate, nWeeks = 3, placebo = false }: { startDate: Date | string, nWeeks?: number, placebo?: boolean }) => {
+const Blister = ({ startDate, nWeeks = 3, placebo = false, onPillPress, takenPills }: { startDate: Date | string, nWeeks?: number, placebo?: boolean, onPillPress?: (index: number, date: Date) => void, takenPills?: boolean[] }) => {
   const rows = 7;
   const cols = nWeeks;
   const total = rows * cols;
 
-  const [takenPills, setTakenPills] = useState(new Array(total).fill(false));
+  const pillStates = takenPills || new Array(total).fill(false);
 
   // Container dimensions from the path
   const topLeft = 5;
@@ -58,7 +57,7 @@ const Blister = ({ startDate, nWeeks = 3, placebo = false }: { startDate: Date |
           x={x}
           y={y}
           size={pillSize}
-          taken={takenPills[i]}
+          taken={pillStates[i]}
         />
       );
 
@@ -87,11 +86,9 @@ const Blister = ({ startDate, nWeeks = 3, placebo = false }: { startDate: Date |
           <View style={styles.foreignObjectContainer}>
             <Pressable
               style={styles.pillPressable}
-              onPress={() => setTakenPills(prev => {
-                const newState = [...prev];
-                newState[pillIndex] = !prev[pillIndex];
-                return newState;
-              })}
+              onPress={() => {
+                onPillPress?.(pillIndex, pillDate);
+              }}
             />
             <Text style={styles.dateLabel}>
               {formattedPillDate}

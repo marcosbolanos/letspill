@@ -3,16 +3,54 @@ import { Pressable, Text, View } from "react-native";
 import { StyleSheet } from "react-native";
 import SettingsButton from "@/components/settings-button";
 import SettingsModal from "@/components/settings-modal";
+import PillModal from "@/components/pill-modal";
 
 import Blister from '@/components/blister';
 
 export default function Index() {
-  const [showModal, setShowModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showPillModal, setShowPillModal] = useState(false);
+  const [selectedPill, setSelectedPill] = useState<{ index: number; date: Date } | null>(null);
+  const [takenPills, setTakenPills] = useState<boolean[]>(new Array(21).fill(false));
+
+  const handlePillPress = (index: number, date: Date) => {
+    setSelectedPill({ index, date });
+    setShowPillModal(true);
+  };
+
+  const handleConfirmPill = () => {
+    if (selectedPill) {
+      setTakenPills(prev => {
+        const newState = [...prev];
+        newState[selectedPill.index] = true;
+        return newState;
+      });
+    }
+  };
+
+  const handleCancelPill = () => {
+    if (selectedPill) {
+      setTakenPills(prev => {
+        const newState = [...prev];
+        newState[selectedPill.index] = false;
+        return newState;
+      });
+    }
+  };
 
   const now = new Date();
   return (
     <View style={styles.mainView}>
-      <SettingsModal visible={showModal} onRequestClose={() => setShowModal(false)} />
+      <SettingsModal visible={showSettingsModal} onRequestClose={() => setShowSettingsModal(false)} />
+      <PillModal 
+        visible={showPillModal} 
+        onRequestClose={() => setShowPillModal(false)}
+        date={selectedPill?.date}
+        taken={selectedPill ? takenPills[selectedPill.index] : false}
+        onConfirm={handleConfirmPill}
+        onCancel={handleCancelPill}
+      />
+
       <View style={styles.topBar}>
         <View style={{ width: 54 }}>
         </View>
@@ -21,13 +59,13 @@ export default function Index() {
             <Text style={title2}> Pill</Text>
           </Text>
         </Text>
-        <Pressable onPress={() => setShowModal(true)}>
+        <Pressable onPress={() => setShowSettingsModal(true)}>
           <SettingsButton />
         </Pressable>
       </View>
 
       <View style={styles.blister}>
-        <Blister startDate={now} />
+        <Blister startDate={now} onPillPress={handlePillPress} takenPills={takenPills} />
       </View>
     </View>
   );
