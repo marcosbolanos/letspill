@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Modal, StyleSheet, Pressable, View, Text } from 'react-native';
 import { authClient } from '@/utils/auth-client';
 import { useAuth } from '@/utils/ctx';
+import { GestureResponderEvent } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 
 
-const settingsModal = ({ onRequestClose, visible = true }: { onRequestClose: Function, visible?: boolean }) => {
+const settingsModal = ({ onRequestClose, visible = true }: { onRequestClose: (event: GestureResponderEvent) => void, visible?: boolean }) => {
   const signOut = async () => await authClient.signOut()
   const { session } = useAuth();
   let email;

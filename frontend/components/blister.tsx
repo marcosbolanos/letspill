@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   dateLabel: {
     position: 'absolute',
     fontFamily: 'Inter 18pt Black',
-    fontSize: '0.6em',
+    fontSize: 10,
     color: 'black',
     fontWeight: '600',
     transform: [{ translateX: -27 }, { translateY: -9 }],

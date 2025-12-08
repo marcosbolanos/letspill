@@ -22,7 +22,7 @@ export default function Index() {
           </Text>
         </Text>
         <Pressable onPress={() => setShowModal(true)}>
-          <SettingsButton style={styles.settingsButton} />
+          <SettingsButton />
         </Pressable>
       </View>
 
@@ -36,33 +36,32 @@ export default function Index() {
 const styles = StyleSheet.create({
   title1: {
     fontFamily: 'Inter 18pt Black',
-    fontSize: '3rem',
+    fontSize: 47,
     textAlign: 'center',
     // @ts-ignore
     fontWeight: 'bold',
-    marginBottom: '2rem',
+    marginBottom: 50,
     flexDirection: "column",
   },
   blister: {
-    marginHorizontal: '1rem',
-    marginVertical: '1rem',
+    marginHorizontal: 20,
     maxHeight: '80%',
     maxWidth: '100%',
   },
   mainView: {
     flex: 1,
     backgroundColor: 'beige',
-    padding: '2rem',
+    padding: 30,
   },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: '2rem',
+    marginBottom: 40,
     position: 'relative'
   },
 });
 
-const title2 = StyleSheet.compose(styles.title, {
+const title2 = StyleSheet.compose(styles.title1, {
   color: 'plum',
 })

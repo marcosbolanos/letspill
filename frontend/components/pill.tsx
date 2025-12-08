@@ -38,7 +38,6 @@ const Pill = ({ x = 0, y = 0, size = 1, taken = false }: { pillHeight?: string, 
       <Ellipse
         cx="2.4"
         cy="-0.5"
-        rotate="20"
         rx={rx * size * 0.2}
         ry={ry * size * 0.1}
         fill="white"
@@ -49,7 +48,6 @@ const Pill = ({ x = 0, y = 0, size = 1, taken = false }: { pillHeight?: string, 
       <Circle
         cx="2.4"
         cy="0.4"
-        rotate="20"
         r={rx * size * 0.07}
         fill="white"
         opacity={1 * spotOpacity}
