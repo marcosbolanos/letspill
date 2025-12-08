@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Text, StyleSheet, View, Pressable, Platform } from "react-native";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Path, ForeignObject } from "react-native-svg";
 import Pill from "./pill"
 
 function formatDate(date: Date) {
@@ -28,8 +28,7 @@ const Blister = ({ startDate, nWeeks = 3, placebo = false }: { startDate: Date |
 
   // Calculate pill positions with perspective
   const pills = [];
-  const textLabels = [];
-  const pressables = [];
+  const interactiveElements = [];
   const padding = 2; // padding from edges
 
   let i = 0;
@@ -63,51 +62,42 @@ const Blister = ({ startDate, nWeeks = 3, placebo = false }: { startDate: Date |
         />
       );
 
-      // Convert SVG coordinates to percentage for absolute positioning
-      const xPercent = (x / 50) * 100;
-      const yPercent = (y / 100) * 100;
-
       // Calculate date for this pill
       const pillDate = new Date(startDate);
       pillDate.setDate(pillDate.getDate() + i);
       const formattedPillDate = formatDate(pillDate);
 
-      // Create pressable overlay for each pill
+      // Create pressable and text label using ForeignObject for proper coordinate alignment
       // The variable for the pill index needs to be within the function scope
       // Otherwise, the onPress function will look for i and find its final value
       const pillIndex = i;
-      pressables.push(
-        <Pressable
-          key={`pressable-${row}-${col}`}
-          style={[
-            styles.pillPressable,
-            {
-              left: `${xPercent}%`,
-              top: `${yPercent}%`,
-            }
-          ]}
-          onPress={() => setTakenPills(prev => {
-            const newState = [...prev];
-            newState[pillIndex] = !prev[pillIndex];
-            return newState;
-          })
-          }
-        />
-      );
 
-      textLabels.push(
-        <Text
-          key={`text-${row}-${col}`}
-          style={[
-            styles.dateLabel,
-            {
-              left: `${xPercent}%`,
-              top: `${yPercent + pillSize + 4.4}%`,
-            }
-          ]}
+      // Size of the pressable area in SVG units
+      const pressableSize = 9.5;
+      const textHeight = 2.5;
+
+      interactiveElements.push(
+        <ForeignObject
+          key={`interactive-${row}-${col}`}
+          x={x - pressableSize / 2}
+          y={y - pressableSize / 2}
+          width={pressableSize}
+          height={pressableSize + textHeight}
         >
-          {formattedPillDate}
-        </Text>
+          <View style={styles.foreignObjectContainer}>
+            <Pressable
+              style={styles.pillPressable}
+              onPress={() => setTakenPills(prev => {
+                const newState = [...prev];
+                newState[pillIndex] = !prev[pillIndex];
+                return newState;
+              })}
+            />
+            <Text style={styles.dateLabel}>
+              {formattedPillDate}
+            </Text>
+          </View>
+        </ForeignObject>
       );
 
       // count which pill we're currently on
@@ -137,9 +127,8 @@ const Blister = ({ startDate, nWeeks = 3, placebo = false }: { startDate: Date |
           fill="silver"
         />
         {pills}
+        {interactiveElements}
       </Svg>
-      {pressables}
-      {textLabels}
     </View>
   )
 }
@@ -150,23 +139,28 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%',
     height: '100%',
+    maxWidth: '100%'
   },
   svg: {
     width: '100%',
     height: '100%',
   },
+  foreignObjectContainer: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
   pillPressable: {
-    position: 'absolute',
-    width: 40,
-    height: 40,
-    transform: [{ translateX: -20 }, { translateY: -20 }],
+    width: '100%',
+    height: '80%',
+    marginBottom: 0.5,
   },
   dateLabel: {
-    position: 'absolute',
     fontFamily: 'Inter 18pt Black',
-    fontSize: 10,
+    fontSize: 1.6,
     color: 'black',
     fontWeight: '600',
-    transform: [{ translateX: -27 }, { translateY: -9 }],
+    textAlign: 'center',
   },
 });
