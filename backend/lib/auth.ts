@@ -4,7 +4,7 @@ import { expo } from "@better-auth/expo";
 import { db } from "./db";
 import 'dotenv/config';
 
-import * as schema from "../src/db/schema/auth-schema";
+import * as schema from "../src/db/schema/auth.schema";
 
 export const auth = betterAuth({
   plugins: [expo()],
@@ -32,3 +32,8 @@ export const auth = betterAuth({
     }
   }
 });
+
+export type AuthType = {
+  user: typeof auth.$Infer.Session.user | null
+  session: typeof auth.$Infer.Session.session | null
+}

@@ -1,0 +1,65 @@
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+
+import { auth } from "../../lib/auth";
+
+import { userProfilesService } from "./user-profiles.service"
+import { queryForUserId, userProfilesSelectSchema } from "./user.profiles.types";
+
+import { requireAuthMiddleware } from "../authorization/middleware/require-auth.middleware";
+import { authorizationService } from "../authorization/authorization.service";
+
+const userProfilesController = new OpenAPIHono<{
+  // Here, auth is required on every route, so the context WILL contain session info
+  Variables: {
+    user: typeof auth.$Infer.Session.user
+    session: typeof auth.$Infer.Session.session
+  }
+}>();
+// This middleware ensures the former
+userProfilesController.use('*', requireAuthMiddleware)
+
+const getUserProfileRoute = createRoute({
+  method: 'get',
+  path: '/',
+  tags: ['User Profile'],
+  responses: {
+    200: {
+      description: 'User profile of the authenticated user',
+      content: {
+        'application/json': {
+          schema: userProfilesSelectSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database error',
+      content: {
+        'application/json': {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+    },
+  },
+});
+
+// A route to get the preferences of a user, needs authorization
+userProfilesController.openapi(getUserProfileRoute, async (c) => {
+  const userId = c.get("session")?.userId
+
+  // At this point, we can be sure that the user has access 
+  // We then process the request
+  try {
+    const preferences = await userProfilesService.getProfile(userId);
+    if (!preferences) {
+      return c.json({ error: "User profile not found" }, 500)
+    }
+    return c.json(preferences, 200);
+  } catch (e) {
+    console.log(e);
+    return c.json({ error: "Failed to read database" }, 500)
+  }
+})
+
+export default userProfilesController
