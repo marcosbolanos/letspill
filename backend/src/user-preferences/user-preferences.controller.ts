@@ -3,6 +3,7 @@ import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { auth } from "../../lib/auth";
 
 import { userPreferencesService } from "./user-preferences.service";
+import { queryForSetUserPreferences } from "./user-preferences.types";
 import { queryForUserId } from "../user-profiles/user.profiles.types";
 
 import { requireAuthMiddleware } from "../authorization/middleware/require-auth.middleware";
@@ -80,5 +81,54 @@ userPreferencesController.openapi(getUserPreferencesRoute, async (c) => {
     return c.json({ error: "Failed to read database" }, 500)
   }
 })
+
+const setUserPreferencesRoute = createRoute({
+  method: 'put',
+  path: '/',
+  tags: ['User Preferences'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: queryForSetUserPreferences
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: "Set user preferences",
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string()
+          })
+        }
+      }
+    },
+    500: {
+      description: 'Database error',
+      content: {
+        'application/json': {
+          schema: z.object({
+            error: z.string(),
+          })
+        }
+      }
+    }
+  }
+})
+
+userPreferencesController.openapi(setUserPreferencesRoute, async (c) => {
+  const userId = c.get("session").userId;
+  const newPreferences = c.req.valid("json").newPreferences
+  try {
+    await userPreferencesService.setPreferences(userId, newPreferences)
+    return c.json({ message: "User preferences have been updated" }, 200)
+  } catch (e) {
+    return c.json({ error: "Couldn't read database" }, 500)
+  }
+})
+
 
 export default userPreferencesController

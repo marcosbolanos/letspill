@@ -3,7 +3,7 @@ import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { auth } from "../../lib/auth";
 
 import { userProfilesService } from "./user-profiles.service"
-import { queryForUserId, userProfilesSelectSchema } from "./user.profiles.types";
+import { queryForUserId, userProfilesSelectSchema, queryForSetUserProfile } from "./user.profiles.types";
 
 import { requireAuthMiddleware } from "../authorization/middleware/require-auth.middleware";
 import { authorizationService } from "../authorization/authorization.service";
@@ -44,7 +44,7 @@ const getUserProfileRoute = createRoute({
   },
 });
 
-// A route to get the preferences of a user, needs authorization
+// A route to get the profile of the authenticated user
 userProfilesController.openapi(getUserProfileRoute, async (c) => {
   const userId = c.get("session")?.userId
 
@@ -59,6 +59,54 @@ userProfilesController.openapi(getUserProfileRoute, async (c) => {
   } catch (e) {
     console.log(e);
     return c.json({ error: "Failed to read database" }, 500)
+  }
+})
+
+const setUserProfileRoute = createRoute({
+  method: 'put',
+  path: '/',
+  tags: ['User Profile'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: queryForSetUserProfile
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: "Set user profile",
+      content: {
+        'application/json': {
+          schema: z.object({
+            message: z.string()
+          })
+        }
+      }
+    },
+    500: {
+      description: 'Database error',
+      content: {
+        'application/json': {
+          schema: z.object({
+            error: z.string(),
+          })
+        }
+      }
+    }
+  }
+})
+
+userProfilesController.openapi(setUserProfileRoute, async (c) => {
+  const userId = c.get("session").userId;
+  const newProfile = c.req.valid("json").newProfile
+  try {
+    await userProfilesService.setProfile(userId, newProfile)
+    return c.json({ message: "User profile has been updated" }, 200)
+  } catch (e) {
+    return c.json({ error: "Couldn't read database" }, 500)
   }
 })
 

@@ -6,8 +6,8 @@ import { Platform } from "react-native";
 // Use 10.0.2.2 for Android emulator, localhost for iOS simulator
 const getBaseURL = () => {
   if (Platform.OS === "android") {
-    return "http://10.0.2.2:3000";
-  }
+    return "http://10.122.155.125:3000";
+  };
   return "http://localhost:3000";
 };
 

@@ -8,6 +8,10 @@ export const userPreferencesInsertSchema = createInsertSchema(userPreferences)
 export const userPreferencesInsertSchemaPartial = createInsertSchema(userPreferences).partial()
 export const userPreferencesSelectSchema = createSelectSchema(userPreferences)
 
+export const queryForSetUserPreferences = z.object({
+  newPreferences: userPreferencesInsertSchemaPartial
+})
+
 // Typescript types
 export type UserPreferencesInsert = z.infer<typeof userPreferencesInsertSchema>
 export type UserPreferencesInsertPartial = z.infer<typeof userPreferencesInsertSchemaPartial>

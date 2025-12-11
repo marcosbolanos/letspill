@@ -8,11 +8,10 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { Button } from '@/components/ui/button'
 import Pill from '@/components/pill'
 
-
 interface PillModalProps {
   onRequestClose: (event: GestureResponderEvent) => void;
   visible?: boolean;
-  date?: Date | null;
+  date?: string | null;
   taken?: boolean;
   onConfirm?: () => void;
   onCancel?: () => void;
@@ -50,14 +49,27 @@ const PillModal = ({ onRequestClose, visible = true, date, taken = false, onConf
     return () => animation.stop();
   }, [visible, taken, translateY]);
 
-  const formatFullDate = (date: Date | null | undefined) => {
-    if (!date) return '(Full Date)';
-    return new Intl.DateTimeFormat('en-GB', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
+  const formatFullDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '(Full Date)';
+
+    const date = new Date(dateStr + 'T00:00:00');
+    const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date);
+    const month = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date);
+    const day = date.getDate();
+    const year = date.getFullYear();
+    const ordinal = getOrdinalSuffix(day);
+
+    return `${weekday}, ${month} ${day}${ordinal} ${year}`;
+  };
+
+  const getOrdinalSuffix = (day: number) => {
+    if (day > 3 && day < 21) return 'th';
+    switch (day % 10) {
+      case 1: return 'st';
+      case 2: return 'nd';
+      case 3: return 'rd';
+      default: return 'th';
+    }
   };
 
   const handleConfirm = (event: GestureResponderEvent) => {
@@ -153,7 +165,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   questionText: {
-    fontSize: 18,
+    fontSize: 22,
     textAlign: 'center',
     flex: 1,
     paddingHorizontal: 10
@@ -170,7 +182,10 @@ const styles = StyleSheet.create({
   }
 })
 
-const button2 = StyleSheet.compose(styles.button, {
-  backgroundColor: "silver"
-})
+const button2 = StyleSheet.create({
+  style: {
+    ...StyleSheet.flatten(styles.button),
+    backgroundColor: "silver"
+  }
+}).style;
 

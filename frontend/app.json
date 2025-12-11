@@ -45,7 +45,11 @@
         "expo-font",
         {
           "fonts": [
-            "./assets/fonts/Inter/Inter18pt-Black.ttf"
+            "./assets/fonts/Inter/Inter18pt-Black.ttf",
+            "./assets/fonts/Playwrite_US_Trad/PlaywriteUSTrad-Thin.ttf",
+            "./assets/fonts/Playwrite_US_Trad/PlaywriteUSTrad-ExtraLight.ttf",
+            "./assets/fonts/Playwrite_US_Trad/PlaywriteUSTrad-Light.ttf",
+            "./assets/fonts/Playwrite_US_Trad/PlaywriteUSTrad-Regular.ttf"
           ]
         }
       ],

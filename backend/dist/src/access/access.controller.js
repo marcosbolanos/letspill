@@ -1,20 +1,21 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { accessService } from './access.service';
 import { queryForUsername, queryForUserId } from '../user-profiles/user.profiles.types';
+import { outgoingAccessGrantSchema, incomingInvitesResponseSchema } from './access.types';
 import { userProfilesService } from '../user-profiles/user-profiles.service';
 import { requireAuthMiddleware } from '../authorization/middleware/require-auth.middleware';
 const accessController = new OpenAPIHono();
 accessController.use("*", requireAuthMiddleware);
-const getGrantsRoute = createRoute({
+const getOutgoingGrantsRoute = createRoute({
     method: 'get',
-    path: '/grants',
+    path: '/outgoing-grants',
     tags: ['Access'],
     responses: {
         200: {
-            description: 'List of active access grants',
+            description: 'List of active outgoing access grants with grantee usernames',
             content: {
                 'application/json': {
-                    schema: z.array(z.any()),
+                    schema: z.array(outgoingAccessGrantSchema),
                 },
             },
         },
@@ -32,7 +33,7 @@ const getGrantsRoute = createRoute({
     },
 });
 // View existing grants for user
-accessController.openapi(getGrantsRoute, async (c) => {
+accessController.openapi(getOutgoingGrantsRoute, async (c) => {
     const ownerId = c.get("session").userId;
     try {
         const grants = await accessService.getActiveAccessGrants(ownerId);
@@ -43,16 +44,16 @@ accessController.openapi(getGrantsRoute, async (c) => {
         return c.json({ success: false, message: "Couldn't read database" }, 500);
     }
 });
-const getInvitesRoute = createRoute({
+const getIncomingInvitesRoute = createRoute({
     method: 'get',
-    path: '/invites',
+    path: '/incoming-invites',
     tags: ['Access'],
     responses: {
         200: {
-            description: 'List of pending access invites',
+            description: 'Pending and approved incoming access invites with owner usernames',
             content: {
                 'application/json': {
-                    schema: z.array(z.any()),
+                    schema: incomingInvitesResponseSchema,
                 },
             },
         },
@@ -69,12 +70,15 @@ const getInvitesRoute = createRoute({
         },
     },
 });
-// View pending invites for a user
-accessController.openapi(getInvitesRoute, async (c) => {
+// View incoming invites for a user
+accessController.openapi(getIncomingInvitesRoute, async (c) => {
     const inviteeId = c.get("session").userId;
     try {
-        const invites = await accessService.getPendingAccessInvites(inviteeId);
-        return c.json(invites, 200);
+        const [pending, approved] = await Promise.all([
+            accessService.getPendingAccessInvites(inviteeId),
+            accessService.getApprovedAccessInvites(inviteeId)
+        ]);
+        return c.json({ pending, approved }, 200);
     }
     catch (e) {
         console.log(e);

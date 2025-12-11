@@ -1,54 +1,118 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Pressable, Text, View } from "react-native";
 import { StyleSheet } from "react-native";
+import AntDesign from '@expo/vector-icons/AntDesign';
+
 import SettingsButton from "@/components/settings-button";
 import SettingsModal from "@/components/settings-modal";
 import PillModal from "@/components/pill-modal";
-
+import BlistersModal from "@/components/blisters-modal";
 import Blister from '@/components/blister';
+import LoadingScreen from "@/components/loading-screen";
+import ErrorScreen from "@/components/error-screen";
+
+import { useGetLoadApp } from "@/api/orval/load-app/load-app";
+import { postPillEvents } from '@/api/orval/pill-events/pill-events';
+import { putUserProfiles } from '@/api/orval/user-profile/user-profile';
+import { putUserPreferences } from "@/api/orval/user-preferences/user-preferences";
 
 export default function Index() {
+  const { data, error, isPending } = useGetLoadApp()
+
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showPillModal, setShowPillModal] = useState(false);
-  const [selectedPill, setSelectedPill] = useState<{ index: number; date: Date } | null>(null);
-  const [takenPills, setTakenPills] = useState<boolean[]>(new Array(21).fill(false));
+  const [showBlistersModal, setShowBlistersModal] = useState(false);
+  const [selectedPill, setSelectedPill] = useState<{ index: number; date: string } | null>(null);
+  const [pillStates, setPillStates] = useState<Record<string, boolean>>({ 'loading': true });
+  const [startDate, setStartDate] = useState(data?.viewedPreferences?.startDate || '');
+  const [username, setUsername] = useState(data?.profile?.username || null);
 
-  const handlePillPress = (index: number, date: Date) => {
-    setSelectedPill({ index, date });
-    setShowPillModal(true);
+  // Update variables when data loads
+  useEffect(() => {
+    if (data) {
+      setStartDate(data.viewedPreferences.startDate);
+      setPillStates(data.viewedPillStates);
+      setUsername(data.profile.username);
+    }
+  }, [data?.viewedPreferences?.startDate]);
+
+  if (isPending) return <LoadingScreen />;
+  if (error) return <ErrorScreen />;
+  const greeting = (username || "anonyme") + "'s blister"
+  const viewingSelf = data.viewedPreferences.userId === data.profile.userId
+
+  const handlePillPress = (index: number, date: string) => {
+    if (viewingSelf) {
+      setSelectedPill({ index, date });
+      setShowPillModal(true);
+    }
   };
 
   const handleConfirmPill = () => {
     if (selectedPill) {
-      setTakenPills(prev => {
-        const newState = [...prev];
-        newState[selectedPill.index] = true;
-        return newState;
-      });
-    }
+      setPillStates(prev => ({
+        ...prev,
+        [selectedPill.date]: true
+      }));
+      postPillEvents({
+        pillEvent: {
+          pillDate: selectedPill.date,
+          pillTaken: true
+        }
+      })
+    };
   };
 
   const handleCancelPill = () => {
     if (selectedPill) {
-      setTakenPills(prev => {
-        const newState = [...prev];
-        newState[selectedPill.index] = false;
-        return newState;
-      });
-    }
+      setPillStates(prev => ({
+        ...prev,
+        [selectedPill.date]: false
+      }));
+      postPillEvents({
+        pillEvent: {
+          pillDate: selectedPill.date,
+          pillTaken: false
+        }
+      })
+    };
   };
 
-  const now = new Date();
+  const handleStartDateChange = (date: string) => {
+    setStartDate(date);
+    putUserPreferences({ newPreferences: { startDate: date } })
+  };
+
+  const handleUsernameChange = (newUsername: string) => {
+    setUsername(newUsername);
+    putUserProfiles({
+      newProfile: {
+        username: newUsername
+      }
+    });
+  };
+
   return (
     <View style={styles.mainView}>
-      <SettingsModal visible={showSettingsModal} onRequestClose={() => setShowSettingsModal(false)} />
-      <PillModal 
-        visible={showPillModal} 
+      <SettingsModal
+        visible={showSettingsModal}
+        onRequestClose={() => setShowSettingsModal(false)}
+        startDate={startDate}
+        onStartDateChange={handleStartDateChange}
+        username={username}
+        onUsernameChange={handleUsernameChange}
+      />
+      <PillModal
+        visible={showPillModal}
         onRequestClose={() => setShowPillModal(false)}
         date={selectedPill?.date}
-        taken={selectedPill ? takenPills[selectedPill.index] : false}
+        taken={selectedPill ? pillStates[selectedPill.date] : false}
         onConfirm={handleConfirmPill}
         onCancel={handleCancelPill}
+      />
+      <BlistersModal
+        visible={showBlistersModal}
+        onRequestClose={() => setShowBlistersModal(false)}
       />
 
       <View style={styles.topBar}>
@@ -64,8 +128,17 @@ export default function Index() {
         </Pressable>
       </View>
 
+      <View style={styles.userTextContainer}>
+        <Text style={styles.userText}>
+          {greeting}{'  '}
+        </Text>
+        <Pressable onPress={() => setShowBlistersModal(true)}>
+          <AntDesign name="eye" size={24} color="black" />
+        </Pressable>
+      </View>
+
       <View style={styles.blister}>
-        <Blister startDate={now} onPillPress={handlePillPress} takenPills={takenPills} />
+        <Blister startDate={data.viewedPreferences.startDate} onPillPress={handlePillPress} pillStates={pillStates} />
       </View>
     </View>
   );
@@ -78,7 +151,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     // @ts-ignore
     fontWeight: 'bold',
-    marginBottom: 50,
+    marginBottom: 10,
     flexDirection: "column",
   },
   blister: {
@@ -98,8 +171,22 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     position: 'relative'
   },
+  userText: {
+    fontFamily: "Inter 18pt Black",
+    fontSize: 19,
+    textAlign: "center",
+  },
+  userTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20
+  }
 });
 
-const title2 = StyleSheet.compose(styles.title1, {
-  color: 'plum',
-})
+const title2 = StyleSheet.create({
+  text: {
+    ...StyleSheet.flatten(styles.title1),
+    color: 'plum',
+  }
+}).text;

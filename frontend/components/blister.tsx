@@ -11,12 +11,10 @@ function formatDate(date: Date) {
   return formattedDate;
 }
 
-const Blister = ({ startDate, nWeeks = 3, placebo = false, onPillPress, takenPills }: { startDate: Date | string, nWeeks?: number, placebo?: boolean, onPillPress?: (index: number, date: Date) => void, takenPills?: boolean[] }) => {
+const Blister = ({ startDate, nWeeks = 3, placebo = false, onPillPress, pillStates }: { startDate: string, nWeeks?: number, placebo?: boolean, onPillPress?: (index: number, date: string) => void, pillStates: Record<string, boolean> }) => {
   const rows = 7;
   const cols = nWeeks;
   const total = rows * cols;
-
-  const pillStates = takenPills || new Array(total).fill(false);
 
   // Container dimensions from the path
   const topLeft = 5;
@@ -51,20 +49,24 @@ const Blister = ({ startDate, nWeeks = 3, placebo = false, onPillPress, takenPil
       const cellHeight = (containerHeight - 2 * padding) / rows;
       const pillSize = Math.min(cellWidth, cellHeight) * 0.13;
 
+      // Calculate date for this pill as a date string (YYYY-MM-DD)
+      const pillDate = new Date(startDate + 'T00:00:00');
+      pillDate.setDate(pillDate.getDate() + i);
+      const year = pillDate.getFullYear();
+      const month = String(pillDate.getMonth() + 1).padStart(2, '0');
+      const day = String(pillDate.getDate()).padStart(2, '0');
+      const pillDateStr = `${year}-${month}-${day}`;
+      const formattedPillDate = formatDate(pillDate);
+
       pills.push(
         <Pill
           key={`${row}-${col}`}
           x={x}
           y={y}
           size={pillSize}
-          taken={pillStates[i]}
+          taken={pillStates[pillDateStr]}
         />
       );
-
-      // Calculate date for this pill
-      const pillDate = new Date(startDate);
-      pillDate.setDate(pillDate.getDate() + i);
-      const formattedPillDate = formatDate(pillDate);
 
       // Create pressable and text label using ForeignObject for proper coordinate alignment
       // The variable for the pill index needs to be within the function scope
@@ -87,7 +89,7 @@ const Blister = ({ startDate, nWeeks = 3, placebo = false, onPillPress, takenPil
             <Pressable
               style={styles.pillPressable}
               onPress={() => {
-                onPillPress?.(pillIndex, pillDate);
+                onPillPress?.(pillIndex, pillDateStr);
               }}
             />
             <Text style={styles.dateLabel}>

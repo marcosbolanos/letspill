@@ -4,6 +4,7 @@ import { generateId } from 'better-auth';
 import { DBType, db } from '../../lib/db';
 import { accessGrants, accessGrantLog } from '../db/schema/access-grants.schema';
 import { accessInvites } from '../db/schema/access-invites.schema';
+import { userProfiles } from '../db/schema/user-profiles.schema';
 
 import { AccessGrantLogInsert } from './access.types';
 
@@ -66,11 +67,39 @@ export class AccessService {
   }
 
   async getPendingAccessInvites(inviteeId: string) {
-    const rows = await this.db.select()
+    const rows = await this.db.select({
+      id: accessInvites.id,
+      ownerId: accessInvites.ownerId,
+      inviteeId: accessInvites.inviteeId,
+      status: accessInvites.status,
+      createdAt: accessInvites.createdAt,
+      updatedAt: accessInvites.updatedAt,
+      ownerUsername: userProfiles.username,
+    })
       .from(accessInvites)
+      .leftJoin(userProfiles, eq(accessInvites.ownerId, userProfiles.userId))
       .where(and(
         eq(accessInvites.inviteeId, inviteeId),
         eq(accessInvites.status, "pending"),
+      ))
+    return rows
+  }
+
+  async getApprovedAccessInvites(inviteeId: string) {
+    const rows = await this.db.select({
+      id: accessInvites.id,
+      ownerId: accessInvites.ownerId,
+      inviteeId: accessInvites.inviteeId,
+      status: accessInvites.status,
+      createdAt: accessInvites.createdAt,
+      updatedAt: accessInvites.updatedAt,
+      ownerUsername: userProfiles.username,
+    })
+      .from(accessInvites)
+      .leftJoin(userProfiles, eq(accessInvites.ownerId, userProfiles.userId))
+      .where(and(
+        eq(accessInvites.inviteeId, inviteeId),
+        eq(accessInvites.status, "approved"),
       ))
     return rows
   }
@@ -118,8 +147,17 @@ export class AccessService {
   }
 
   async getActiveAccessGrants(ownerId: string) {
-    const query = await this.db.select()
+    const query = await this.db.select({
+      id: accessGrants.id,
+      ownerId: accessGrants.ownerId,
+      granteeId: accessGrants.granteeId,
+      createdAt: accessGrants.createdAt,
+      updatedAt: accessGrants.updatedAt,
+      active: accessGrants.active,
+      granteeUsername: userProfiles.username,
+    })
       .from(accessGrants)
+      .leftJoin(userProfiles, eq(accessGrants.granteeId, userProfiles.userId))
       .where(and(
         eq(accessGrants.ownerId, ownerId),
         eq(accessGrants.active, true)

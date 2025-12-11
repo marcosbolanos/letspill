@@ -13,7 +13,7 @@ class UserPreferencesService {
         return query[0] ?? null;
     }
     async setPreferences(userId, preferences) {
-        const query = await this.db.update(userPreferences)
+        await this.db.update(userPreferences)
             .set(preferences)
             .where(eq(userPreferences.userId, userId));
     }

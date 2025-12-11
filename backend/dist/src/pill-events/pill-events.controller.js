@@ -1,24 +1,25 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { generateId } from 'better-auth';
 import { pillEventsService } from "./pill-events.service";
-import { queryForUserId } from "../user-profiles/user.profiles.types";
+import { queryForPillEvents, pillStatesSchema, createPillEventsJsonSchema } from "./pill-events.types";
 import { requireAuthMiddleware } from "../authorization/middleware/require-auth.middleware";
 import { authorizationService } from "../authorization/authorization.service";
 const pillEventsController = new OpenAPIHono();
 // This middleware ensures the former
 pillEventsController.use('*', requireAuthMiddleware);
-const getPillEventsRoute = createRoute({
+const getPillStatesRoute = createRoute({
     method: 'get',
     path: '/',
     tags: ['Pill Events'],
     request: {
-        query: queryForUserId,
+        query: queryForPillEvents
     },
     responses: {
         200: {
-            description: 'List of pill events for the user',
+            description: 'List of pill events for the user, starting at a date',
             content: {
                 'application/json': {
-                    schema: z.array(z.any()),
+                    schema: pillStatesSchema,
                 },
             },
         },
@@ -46,9 +47,10 @@ const getPillEventsRoute = createRoute({
     },
 });
 // A route to get the pill events of a user, needs authorization
-pillEventsController.openapi(getPillEventsRoute, async (c) => {
+pillEventsController.openapi(getPillStatesRoute, async (c) => {
     const requesterId = c.get("session")?.userId;
-    const ownerId = c.req.valid("query").userId;
+    const ownerId = c.req.valid("query").ownerId;
+    const startDate = c.req.valid("query").startDate;
     const hasAccess = await (authorizationService.checkOwnershipOrAccessGrant(requesterId, ownerId));
     if (!hasAccess) {
         return c.json({ success: false, message: "Unauthorized" }, 403);
@@ -56,12 +58,68 @@ pillEventsController.openapi(getPillEventsRoute, async (c) => {
     // At this point, we can be sure that the user has access 
     // We then process the request
     try {
-        const preferences = await pillEventsService.getPillEvents(ownerId);
-        return c.json(preferences, 200);
+        const pillEvents = await pillEventsService.getLatestPillEvents(ownerId, startDate);
+        const pillStates = pillEventsService.getPillStates(pillEvents);
+        return c.json(pillStates, 200);
     }
     catch (e) {
         console.log(e);
         return c.json({ error: "Failed to read database" }, 500);
+    }
+});
+const createPillEventRoute = createRoute({
+    method: 'post',
+    path: '/',
+    tags: ['Pill Events'],
+    request: {
+        body: {
+            content: {
+                'application/json': {
+                    schema: z.object({
+                        pillEvent: createPillEventsJsonSchema
+                    })
+                }
+            }
+        }
+    },
+    responses: {
+        200: {
+            description: "Create pill event",
+            content: {
+                'aplication/json': {
+                    schema: z.object({
+                        message: z.string(),
+                    })
+                }
+            }
+        },
+        500: {
+            description: 'Database Error',
+            content: {
+                'application/json': {
+                    schema: z.object({
+                        error: z.string()
+                    })
+                }
+            }
+        }
+    }
+});
+pillEventsController.openapi(createPillEventRoute, async (c) => {
+    const userId = c.get("session").userId;
+    const event = c.req.valid('json').pillEvent;
+    const pillInsert = {
+        id: generateId(),
+        userId: userId,
+        pillDate: event.pillDate,
+        pillTaken: event.pillTaken
+    };
+    try {
+        await pillEventsService.createPillEvent(pillInsert);
+        return c.json({ message: 'Event created' }, 200);
+    }
+    catch (e) {
+        return c.json({ error: 'Database error' }, 500);
     }
 });
 export default pillEventsController;

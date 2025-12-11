@@ -3,7 +3,8 @@ import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { user } from './auth.schema';
 export const userProfiles = pgTable("user_profiles", {
     userId: text("user_id").primaryKey().references(() => user.id, { onDelete: "cascade" }),
-    username: text("username").notNull().unique(),
+    username: text("username").unique(),
+    viewing: text("viewing").references(() => user.id).notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date())
 });
 export const userProfileRelations = relations(userProfiles, ({ one }) => ({

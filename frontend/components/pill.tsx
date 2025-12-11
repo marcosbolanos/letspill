@@ -41,16 +41,16 @@ const Pill = ({ x = 0, y = 0, size = 1, taken = false, showContainer = true }: {
 
       {/* Some shiny spots to it */}
       <Ellipse
-        cx="2.3"
-        cy="-0.1"
+        cx="-0.2"
+        cy="-2.1"
         rx={rx * 0.4}
         ry={ry * 0.2}
         fill="white" opacity={0.6 * spotOpacity} transform="
-        rotate(-40 0 0)"
+        rotate(40 0 0)"
       />
       <Circle
         cx="2.7"
-        cy="-0.8"
+        cy="0.4"
         r={rx * 0.11}
         fill="white"
         opacity={0.9 * spotOpacity}

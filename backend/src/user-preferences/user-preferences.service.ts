@@ -16,7 +16,7 @@ class UserPreferencesService {
   }
 
   async setPreferences(userId: string, preferences: UserPreferencesInsertPartial) {
-    const query = await this.db.update(userPreferences)
+    await this.db.update(userPreferences)
       .set(preferences)
       .where(eq(userPreferences.userId, userId))
   }

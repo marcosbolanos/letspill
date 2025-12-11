@@ -4,8 +4,10 @@ import { auth } from '../../lib/auth';
 
 import { accessService } from './access.service';
 import { queryForUsername, queryForUserId } from '../user-profiles/user.profiles.types';
+import { outgoingAccessGrantSchema, incomingInvitesResponseSchema } from './access.types';
 
 import { userProfilesService } from '../user-profiles/user-profiles.service';
+import { usernameSchema } from '../user-profiles/user.profiles.types';
 
 import { requireAuthMiddleware } from '../authorization/middleware/require-auth.middleware';
 
@@ -18,16 +20,16 @@ const accessController = new OpenAPIHono<{
 }>();
 accessController.use("*", requireAuthMiddleware)
 
-const getGrantsRoute = createRoute({
+const getOutgoingGrantsRoute = createRoute({
   method: 'get',
-  path: '/grants',
+  path: '/outgoing-grants',
   tags: ['Access'],
   responses: {
     200: {
-      description: 'List of active access grants',
+      description: 'List of active outgoing access grants with grantee usernames',
       content: {
         'application/json': {
-          schema: z.array(z.any()),
+          schema: z.array(outgoingAccessGrantSchema),
         },
       },
     },
@@ -46,7 +48,7 @@ const getGrantsRoute = createRoute({
 });
 
 // View existing grants for user
-accessController.openapi(getGrantsRoute, async (c) => {
+accessController.openapi(getOutgoingGrantsRoute, async (c) => {
   const ownerId = c.get("session").userId
   try {
     const grants = await accessService.getActiveAccessGrants(ownerId)
@@ -57,16 +59,16 @@ accessController.openapi(getGrantsRoute, async (c) => {
   }
 })
 
-const getInvitesRoute = createRoute({
+const getIncomingInvitesRoute = createRoute({
   method: 'get',
-  path: '/invites',
+  path: '/incoming-invites',
   tags: ['Access'],
   responses: {
     200: {
-      description: 'List of pending access invites',
+      description: 'Pending and approved incoming access invites with owner usernames',
       content: {
         'application/json': {
-          schema: z.array(z.any()),
+          schema: incomingInvitesResponseSchema,
         },
       },
     },
@@ -84,12 +86,15 @@ const getInvitesRoute = createRoute({
   },
 });
 
-// View pending invites for a user
-accessController.openapi(getInvitesRoute, async (c) => {
+// View incoming invites for a user
+accessController.openapi(getIncomingInvitesRoute, async (c) => {
   const inviteeId = c.get("session").userId;
   try {
-    const invites = await accessService.getPendingAccessInvites(inviteeId)
-    return c.json(invites, 200)
+    const [pending, approved] = await Promise.all([
+      accessService.getPendingAccessInvites(inviteeId),
+      accessService.getApprovedAccessInvites(inviteeId)
+    ])
+    return c.json({ pending, approved }, 200)
   } catch (e) {
     console.log(e)
     return c.json({ success: false, message: "Couldn't read database" }, 500)
@@ -141,31 +146,32 @@ const postInviteRoute = createRoute({
 });
 
 // Send an invite to a user
-accessController.openapi(postInviteRoute, async (c) => {
-  const ownerId = c.get("session").userId
-  const username = c.req.valid('query').username
+accessController.openapi(postInviteRoute,
+  async (c) => {
+    const ownerId = c.get("session").userId
+    const username = c.req.valid('query').username
 
-  try {
-    // Check if the user exists
-    const inviteeId = await userProfilesService.getUserIdFromUsername(username)
-    if (inviteeId === null) {
-      // Silently fail (for user privacy)
-      return c.json({ success: true, message: "Request processed" }, 200)
+    try {
+      // Check if the user exists
+      const inviteeId = await userProfilesService.getUserIdFromUsername(username)
+      if (inviteeId === null) {
+        // Silently fail (for user privacy)
+        return c.json({ success: true, message: "Request processed" }, 200)
+      }
+      // Never create invites that are destined to the sender
+      if (inviteeId === ownerId) {
+        return c.json({ success: false, message: "No self-invites!" }, 400)
+      }
+
+      // This helper uses onConflictDoUpdate so no need to worry about duplicates
+      await accessService.upsertAccessInvitePending(ownerId, inviteeId)
+
+      return c.json({ success: true, message: 'Request processed' }, 200)
+    } catch (e) {
+      console.log(e)
+      return c.json({ success: false, message: "Couldn't read database" }, 500)
     }
-    // Never create invites that are destined to the sender
-    if (inviteeId === ownerId) {
-      return c.json({ success: false, message: "No self-invites!" }, 400)
-    }
-
-    // This helper uses onConflictDoUpdate so no need to worry about duplicates
-    await accessService.upsertAccessInvitePending(ownerId, inviteeId)
-
-    return c.json({ success: true, message: 'Request processed' }, 200)
-  } catch (e) {
-    console.log(e)
-    return c.json({ success: false, message: "Couldn't read database" }, 500)
-  }
-})
+  })
 
 const approveInviteRoute = createRoute({
   method: 'put',

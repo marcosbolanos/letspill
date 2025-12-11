@@ -5,6 +5,8 @@ import { db } from "./db";
 import 'dotenv/config';
 
 import * as schema from "../src/db/schema/auth.schema";
+import { userPreferences } from "@/src/db/schema/user-preferences.schema";
+import { userProfiles } from "src/db/schema/user-profiles.schema"
 
 export const auth = betterAuth({
   plugins: [expo()],
@@ -29,6 +31,18 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    }
+  },
+  // Automatically create an entry in Profiles and Preferences for new users
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          const profile = await db.insert(userProfiles).values({ userId: user.id, viewing: user.id }).returning()
+          const prefs = await db.insert(userPreferences).values({ userId: user.id }).returning()
+          console.log({ profile, prefs })
+        }
+      }
     }
   }
 });

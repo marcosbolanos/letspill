@@ -5,7 +5,7 @@ import { createMiddleware } from 'hono/factory';
 export const requireAuthMiddleware = createMiddleware(async (c, next) => {
   const session = c.get("session")
   if (!session) {
-    return c.json({ error: "Authorization required" }, 401);
+    return c.json({ error: "Authentication required" }, 401);
   }
   await next();
   return;
