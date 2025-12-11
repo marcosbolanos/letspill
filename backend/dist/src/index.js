@@ -3,6 +3,7 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 import { cors } from 'hono/cors';
 import { auth } from '../lib/auth';
 import { Scalar } from '@scalar/hono-api-reference';
+import { handle } from 'hono/aws-lambda';
 import 'dotenv/config';
 import sessionController from './session/session.controller';
 import loginController from './login/login.controller';
@@ -26,11 +27,6 @@ cors({
     maxAge: 600,
     credentials: true,
 }));
-// Logging middleware that prints out incoming requests
-app.use('*', async (c, next) => {
-    console.log('Request:', c.req.method, c.req.path);
-    return next();
-});
 // Better Auth configuration : we reroute all GET and POST to its handler
 app.on(["POST", "GET"], "/api/auth/*", (c) => {
     return auth.handler(c.req.raw);
@@ -69,12 +65,22 @@ if (process.env.ENVIRONMENT == "dev") {
         theme: 'purple',
         spec: { url: '/doc' },
     }));
+    // Logging middleware that prints out incoming requests
+    app.use('*', async (c, next) => {
+        console.log('Request:', c.req.method, c.req.path);
+        return next();
+    });
 }
 export default app;
-serve({
-    fetch: app.fetch,
-    hostname: '0.0.0.0',
-    port: 3000
-}, (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`);
-});
+// Production: Export Lambda handler
+export const handler = handle(app);
+// Development/Local: Start Node.js server
+if (process.env.ENVIRONMENT !== "prod") {
+    serve({
+        fetch: app.fetch,
+        hostname: '0.0.0.0',
+        port: 3000
+    }, (info) => {
+        console.log(`Server is running on http://localhost:${info.port}`);
+    });
+}
