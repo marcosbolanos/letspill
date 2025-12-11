@@ -24,6 +24,10 @@
     "@types/node": "^20.11.17",
     "@types/pg": "^8.15.6",
     "drizzle-kit": "^0.31.8",
+    "esbuild": "^0.27.1",
+    "serverless": "^4.27.1",
+    "serverless-esbuild": "^1.56.1",
+    "serverless-offline": "^14.4.0",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.7.1",
     "typescript": "^5.8.3"

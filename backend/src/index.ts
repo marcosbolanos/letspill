@@ -26,16 +26,15 @@ const app = new OpenAPIHono<{
 // Session middleware, this makes user and session available in every request's context
 app.use("*", sessionMiddleware);
 
-// CORS middleware: we're only allowing requests coming from the frontend
+// CORS middleware: Allow all origins for mobile app
 app.use(
-  "*", // This is enabled for all routes
+  "*",
   cors({
-    origin: process.env.FRONTEND_URL!,
+    origin: '*',
     allowHeaders: ["Content-Type", "Authorization"],
     allowMethods: ["POST", "GET", "OPTIONS", "PUT"],
     exposeHeaders: ["Content-Length"],
     maxAge: 600,
-    credentials: true,
   }),
 );
 
