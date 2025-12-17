@@ -15,6 +15,15 @@ export class RdbDbStack extends Stack {
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id, props)
 
+    const pgParams = new rds.ParameterGroup(this, 'PostgresParams', {
+      engine: rds.DatabaseInstanceEngine.postgres({
+        version: rds.PostgresEngineVersion.VER_17_7,
+      }),
+      parameters: {
+        'rds.force_ssl': '0',
+      },
+    });
+
     this.db = new rds.DatabaseInstance(this, props.dbId, {
       engine: rds.DatabaseInstanceEngine.postgres({
         version: rds.PostgresEngineVersion.VER_17_7,
@@ -31,6 +40,7 @@ export class RdbDbStack extends Stack {
       ),
       credentials: rds.Credentials.fromGeneratedSecret('postgres'),
       databaseName: 'app',
+      parameterGroup: pgParams,
       publiclyAccessible: false,
     });
   }

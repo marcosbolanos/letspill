@@ -32,7 +32,7 @@ const connectionString = "postgresql://"
   + ENV_CONFIG.DB_PORT
   + "/"
   + ENV_CONFIG.DB_NAME
-  + "?sslmode=require&sslcert=&sslkey=&sslrootcert=" // Add SSL without verifying certs
+  + "?sslmode=disable"
 
 ENV_CONFIG.NODE_ENV = process.env.NODE_ENV;
 ENV_CONFIG.DB_CONNECTION_STRING = connectionString
