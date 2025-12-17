@@ -2,15 +2,15 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import CONFIG from '../envconfig';
 
 const connectionString = "postgresql://"
-  + CONFIG.POSTGRES_USER
+  + CONFIG.DB_USER
   + ":"
-  + CONFIG.POSTGRES_PASSWORD
+  + CONFIG.DB_PASSWORD
   + "@"
-  + CONFIG.DATABASE_ENDPOINT
+  + CONFIG.DB_HOST
   + ":"
-  + CONFIG.DATABASE_PORT
+  + CONFIG.DB_PORT
   + "/"
-  + CONFIG.DATABASE_NAME
+  + CONFIG.DB_NAME
 
 export const db = drizzle(connectionString);
 

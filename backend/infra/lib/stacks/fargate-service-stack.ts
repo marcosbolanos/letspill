@@ -12,6 +12,9 @@ interface FargateServiceStackProps extends StackProps {
   cluster: ecs.ICluster
   repositoryName: string
   db: rds.DatabaseInstance
+  appSecretName: string
+  frontendUrl: string
+  betterAuthUrl: string
 }
 
 export class FargateServiceStack extends Stack {
@@ -22,13 +25,18 @@ export class FargateServiceStack extends Stack {
 
     const appTask = new AppTask(this, 'AppTask', {
       repositoryName: props.repositoryName,
-      db: props.db
+      db: props.db,
+      appSecretName: props.appSecretName,
+      frontendUrl: props.frontendUrl,
+      betterAuthUrl: props.betterAuthUrl,
     })
 
     this.service = new ecs.FargateService(this, props.serviceId, {
       taskDefinition: appTask.taskDefinition,
       cluster: props.cluster,
-      securityGroups: [props.appSg]
+      securityGroups: [props.appSg],
+      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      assignPublicIp: true
     })
   }
 }

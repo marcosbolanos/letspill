@@ -26,10 +26,20 @@ export class MigrateTask extends Construct {
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
     });
 
+    const executionRole = new iam.Role(this, 'ExecutionRole', {
+      assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy'),
+      ],
+    });
+
+    props.db.secret!.grantRead(executionRole);
+
     this.taskDefinition = new ecs.FargateTaskDefinition(this, 'MigrateTask', {
       cpu: 256,
       memoryLimitMiB: 512,
       taskRole,
+      executionRole,
     });
 
     this.taskDefinition.addContainer('Migrate', {
@@ -37,14 +47,18 @@ export class MigrateTask extends Construct {
       command: ['pnpm', 'drizzle-kit', 'migrate'],
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: 'migrate' }),
       environment: {
-        DATABASE_HOST: props.db.dbInstanceEndpointAddress,
-        DATABASE_PORT: '5432',
-        DATABASE_NAME: 'app',
+        DB_HOST: props.db.dbInstanceEndpointAddress,
+        DB_PORT: '5432',
+        DB_NAME: 'app',
       },
       secrets: {
-        DATABASE_PASSWORD: ecs.Secret.fromSecretsManager(
+        DB_PASSWORD: ecs.Secret.fromSecretsManager(
           props.db.secret!,
           'password'
+        ),
+        DB_USER: ecs.Secret.fromSecretsManager(
+          props.db.secret!,
+          'username'
         ),
       },
     });

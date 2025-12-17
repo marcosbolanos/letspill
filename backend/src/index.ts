@@ -22,6 +22,14 @@ const app = new OpenAPIHono<{
   Variables: AuthType
 }>();
 
+// Logging middleware that prints out incoming requests (dev only)
+if (CONFIG.NODE_ENV == "development") {
+  app.use('*', async (c, next) => {
+    console.log('Request:', c.req.method, c.req.path)
+    return next()
+  })
+}
+
 // Session middleware, this makes user and session available in every request's context
 app.use("*", sessionMiddleware);
 
@@ -29,11 +37,12 @@ app.use("*", sessionMiddleware);
 app.use(
   "*",
   cors({
-    origin: '*',
+    origin: (origin) => origin || '*',
     allowHeaders: ["Content-Type", "Authorization"],
     allowMethods: ["POST", "GET", "OPTIONS", "PUT"],
     exposeHeaders: ["Content-Length"],
     maxAge: 600,
+    credentials: true,
   }),
 );
 
@@ -67,11 +76,11 @@ app.route('/load-app', loadAppController)
 
 // Hello world route to test if it's working
 app.get('/', (c) => {
-  return c.text("If you're reading things, we're good!", 200)
+  return c.text("If you're reading this, we're good!", 200)
 })
 
 // Dev-only API routes
-if (CONFIG.NODE_ENV == "dev") {
+if (CONFIG.NODE_ENV == "development") {
   // The OpenAPI documentation will be available at /doc
   app.doc('/doc', {
     openapi: '3.0.0',
@@ -89,12 +98,6 @@ if (CONFIG.NODE_ENV == "dev") {
       spec: { url: '/doc' },
     } as any)
   );
-
-  // Logging middleware that prints out incoming requests
-  app.use('*', async (c, next) => {
-    console.log('Request:', c.req.method, c.req.path)
-    return next()
-  })
 }
 
 // Start nodejs server

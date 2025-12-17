@@ -1,22 +1,14 @@
-import dotenv from 'dotenv';
-import path from 'path';
+import 'dotenv/config'
 import { z } from 'zod';
-
-const envFile = process.env.NODE_ENV === 'production'
-  ? '.env.production'
-  : '.env.development';
-
-dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 
 const envSchema = z.object({
   NODE_ENV: z.string().optional(),
   PORT: z.coerce.number(),
-  POSTGRES_USER: z.string(),
-  POSTGRES_PASSWORD: z.string(),
-  DATABASE_ENDPOINT: z.string(),
-  DATABASE_PORT: z.string(),
-  DATABASE_NAME: z.string(),
-  DATABASE_CONNECTION_STRING: z.string(),
+  DB_USER: z.string(),
+  DB_PASSWORD: z.string(),
+  DB_HOST: z.string(),
+  DB_PORT: z.string(),
+  DB_NAME: z.string(),
   BETTER_AUTH_SECRET: z.string(),
   BETTER_AUTH_URL: z.string(),
   GOOGLE_CLIENT_ID: z.string(),

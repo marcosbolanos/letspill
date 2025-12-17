@@ -33,11 +33,40 @@ export class NetworkStack extends Stack {
       allowAllOutbound: true,
     });
 
+    // Allow inbound traffic on port 3000 from anywhere
+    this.appSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(3000), 'Allow HTTP on port 3000');
+
     this.dbSg = new ec2.SecurityGroup(this, props.dbSgId, {
       vpc: this.vpc,
     });
 
     this.dbSg.addIngressRule(this.appSg, ec2.Port.tcp(5432));
+
+    // Add VPC endpoints for AWS services (required for private subnets without NAT)
+    this.vpc.addInterfaceEndpoint('SecretsManagerEndpoint', {
+      service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+      securityGroups: [this.appSg],
+    });
+
+    this.vpc.addInterfaceEndpoint('EcrApiEndpoint', {
+      service: ec2.InterfaceVpcEndpointAwsService.ECR,
+      securityGroups: [this.appSg],
+    });
+
+    this.vpc.addInterfaceEndpoint('EcrDockerEndpoint', {
+      service: ec2.InterfaceVpcEndpointAwsService.ECR_DOCKER,
+      securityGroups: [this.appSg],
+    });
+
+    this.vpc.addInterfaceEndpoint('CloudWatchLogsEndpoint', {
+      service: ec2.InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
+      securityGroups: [this.appSg],
+    });
+
+    // S3 gateway endpoint for ECR image layers (no cost)
+    this.vpc.addGatewayEndpoint('S3Endpoint', {
+      service: ec2.GatewayVpcEndpointAwsService.S3,
+    });
   }
 }
 

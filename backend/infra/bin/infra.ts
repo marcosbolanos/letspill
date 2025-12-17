@@ -32,8 +32,8 @@ const networkStack = new NetworkStack(app, "NetworkStack", {
   env,
   appSgId: `${appPrefix}AppSg`,
   dbSgId: `${appPrefix}DbSg`,
-  vpcName: `Common${prefix}Vpc/Vpc`, // CommonDevVpc, CommonProdVpc
-  clusterName: `Common${prefix}Vpc/Vpc`, // CommonDevCluster, CommonProdCluster
+  vpcName: `Common${prefix}Vpc`, // CommonDevVpc, CommonProdVpc
+  clusterName: `Common${prefix}Cluster`, // CommonDevCluster, CommonProdCluster
 })
 
 const vpc = networkStack.vpc
@@ -61,7 +61,10 @@ const appFargateServiceStack = new FargateServiceStack(app, "FargateServiceStack
   appSg: appSg,
   cluster: cluster,
   repositoryName: appName.toLowerCase(),
-  db: db
+  db: db,
+  appSecretName: `${prefix}LetspillAppSecrets`,
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
+  betterAuthUrl: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
 })
 
 const migrateServiceStack = new MigrateServiceStack(app, "MigrateServiceStack", {
