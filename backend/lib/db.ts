@@ -1,6 +1,17 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import 'dotenv/config';
+import CONFIG from '../envconfig';
 
-export const db = drizzle(process.env.DATABASE_URL!);
+const connectionString = "postgresql://"
+  + CONFIG.POSTGRES_USER
+  + ":"
+  + CONFIG.POSTGRES_PASSWORD
+  + "@"
+  + CONFIG.DATABASE_ENDPOINT
+  + ":"
+  + CONFIG.DATABASE_PORT
+  + "/"
+  + CONFIG.DATABASE_NAME
+
+export const db = drizzle(connectionString);
 
 export type DBType = typeof db;

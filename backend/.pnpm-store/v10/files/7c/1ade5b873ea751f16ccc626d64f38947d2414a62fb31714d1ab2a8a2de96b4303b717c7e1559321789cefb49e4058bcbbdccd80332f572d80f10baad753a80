@@ -1,0 +1,97 @@
+{
+  "name": "@better-auth/expo",
+  "version": "1.4.5",
+  "type": "module",
+  "description": "Better Auth integration for Expo and React Native applications.",
+  "main": "dist/index.mjs",
+  "module": "dist/index.mjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/better-auth/better-auth",
+    "directory": "packages/expo"
+  },
+  "homepage": "https://www.better-auth.com/docs/integrations/expo",
+  "exports": {
+    ".": {
+      "dev-source": "./src/index.ts",
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./client": {
+      "dev-source": "./src/client.ts",
+      "types": "./dist/client.d.mts",
+      "default": "./dist/client.mjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/index.d.mts"
+      ],
+      "client": [
+        "./dist/client.d.mts"
+      ]
+    }
+  },
+  "keywords": [
+    "auth",
+    "expo",
+    "react-native",
+    "typescript",
+    "better-auth"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@better-fetch/fetch": "1.1.18",
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.2.0",
+    "expo-constants": "~17.1.7",
+    "expo-network": "^8.0.7",
+    "expo-linking": "~7.1.7",
+    "expo-web-browser": "~14.2.0",
+    "react-native": "~0.80.2",
+    "tsdown": "^0.16.0",
+    "@better-auth/core": "1.4.5",
+    "better-auth": "1.4.5"
+  },
+  "peerDependencies": {
+    "expo-constants": ">=17.0.0",
+    "expo-linking": ">=7.0.0",
+    "expo-network": "^8.0.7",
+    "expo-web-browser": ">=14.0.0",
+    "better-auth": "1.4.5",
+    "@better-auth/core": "1.4.5"
+  },
+  "peerDependenciesMeta": {
+    "expo-constants": {
+      "optional": true
+    },
+    "expo-linking": {
+      "optional": true
+    },
+    "expo-network": {
+      "optional": true
+    },
+    "expo-web-browser": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@better-fetch/fetch": "1.1.18",
+    "better-call": "1.1.4",
+    "zod": "^4.1.12"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "vitest",
+    "lint:package": "publint run --strict",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --project tsconfig.json"
+  }
+}

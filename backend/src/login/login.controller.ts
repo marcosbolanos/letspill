@@ -1,5 +1,5 @@
 import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
-import 'dotenv/config';
+import CONFIG from '../../envconfig'
 
 const loginController = new OpenAPIHono();
 

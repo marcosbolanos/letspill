@@ -5,8 +5,7 @@ import { auth, AuthType } from '../lib/auth';
 import { Scalar } from '@scalar/hono-api-reference';
 import { handle } from 'hono/aws-lambda'
 
-import 'dotenv/config';
-
+import CONFIG from '../envconfig'
 import sessionController from './session/session.controller'
 import loginController from './login/login.controller'
 import accessController from './access/access.controller';
@@ -66,13 +65,13 @@ app.route('/user-profiles', userProfilesController)
 // This controller exposes a special route that efficiently loads the data needed on app startup
 app.route('/load-app', loadAppController)
 
-// Dev-only API routes
-if (process.env.ENVIRONMENT == "dev") {
-  // Hello world route to test if it's working
-  app.get('/', (c) => {
-    return c.text('Hello Hono!')
-  })
+// Hello world route to test if it's working
+app.get('/', (c) => {
+  return c.text("If you're reading things, we're good!", 200)
+})
 
+// Dev-only API routes
+if (CONFIG.NODE_ENV == "dev") {
   // The OpenAPI documentation will be available at /doc
   app.doc('/doc', {
     openapi: '3.0.0',
@@ -98,20 +97,11 @@ if (process.env.ENVIRONMENT == "dev") {
   })
 }
 
-
-
-export default app;
-
-// Production: Export Lambda handler
-export const handler = handle(app);
-
-// Development/Local: Start Node.js server
-if (process.env.ENVIRONMENT !== "prod") {
-  serve({
-    fetch: app.fetch,
-    hostname: '0.0.0.0',
-    port: 3000
-  }, (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`)
-  })
-}
+// Start nodejs server
+serve({
+  fetch: app.fetch,
+  hostname: '0.0.0.0',
+  port: CONFIG.PORT
+}, (info) => {
+  console.log(`Server is running on port: ${info.port}`)
+})

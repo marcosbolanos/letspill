@@ -1,0 +1,75 @@
+#!/usr/bin/env node
+import * as cdk from 'aws-cdk-lib/core';
+import 'dotenv/config'
+
+import nodeEnv from '../lib/shared/env';
+import { NetworkStack } from '../lib/stacks/network-stack'
+import { FargateServiceStack } from '../lib/stacks/fargate-service-stack';
+import { MigrateServiceStack } from '../lib/stacks/migrate-service-stack';
+import { RdbDbStack } from '../lib/stacks/rds-stack';
+import { EcrStack } from '../lib/stacks/ecr-stack';
+
+const prefixes = {
+  development: 'Dev',
+  production: 'Prod'
+}
+const appName = 'Letspill'
+const prefix = `${prefixes[nodeEnv]}`; // Dev or Prod
+const appPrefix = `${prefix}${appName}` // DevLetspill, ProdLetspill
+
+const app = new cdk.App();
+
+const env = {
+  account: process.env.CDK_DEFAULT_ACCOUNT,
+  region: process.env.CDK_DEFAULT_REGION
+};
+
+// Currently, dev and prod VPCs are shared across projects, allowing to later share ALBs/NAT gateways
+// This is also the case for the dev and prod clusters.
+// However, separate SGs are given to apps/DBs of each project
+// This means that there's still some network-level isolation
+const networkStack = new NetworkStack(app, "NetworkStack", {
+  env,
+  appSgId: `${appPrefix}AppSg`,
+  dbSgId: `${appPrefix}DbSg`,
+  vpcName: `Common${prefix}Vpc/Vpc`, // CommonDevVpc, CommonProdVpc
+  clusterName: `Common${prefix}Vpc/Vpc`, // CommonDevCluster, CommonProdCluster
+})
+
+const vpc = networkStack.vpc
+const cluster = networkStack.cluster
+const appSg = networkStack.appSg
+const dbSg = networkStack.dbSg
+
+const rdbDbStack = new RdbDbStack(app, 'Db', {
+  env,
+  dbId: `${appPrefix}Db`,
+  vpc: vpc,
+  dbSg: dbSg
+})
+const db = rdbDbStack.db
+
+const ecrStack = new EcrStack(app, 'EcrStack', {
+  env,
+  repositoryName: appName.toLowerCase()
+})
+
+const appFargateServiceStack = new FargateServiceStack(app, "FargateServiceStack", {
+  env,
+  serviceId: appPrefix,
+  vpc,
+  appSg: appSg,
+  cluster: cluster,
+  repositoryName: appName.toLowerCase(),
+  db: db
+})
+
+const migrateServiceStack = new MigrateServiceStack(app, "MigrateServiceStack", {
+  env,
+  taskId: `${appPrefix}MigrateTask`,
+  vpc,
+  appSg: appSg,
+  cluster: cluster,
+  repositoryName: appName.toLowerCase(),
+  db: db
+})

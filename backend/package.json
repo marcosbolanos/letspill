@@ -1,10 +1,12 @@
 {
   "name": "backend",
   "type": "module",
+  "main": "src/index.ts",
+  "packageManager": "pnpm@9.12.2",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "NODE_ENV=development tsx watch src/index.ts",
     "build": "tsc",
-    "start": "tsx src/index.ts"
+    "start": "NODE_ENV=production tsx src/index.ts"
   },
   "dependencies": {
     "@better-auth/expo": "^1.4.5",
