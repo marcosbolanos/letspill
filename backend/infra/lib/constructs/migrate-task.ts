@@ -44,12 +44,19 @@ export class MigrateTask extends Construct {
 
     this.taskDefinition.addContainer('Migrate', {
       image: image,
-      command: ['pnpm', 'drizzle-kit', 'migrate'],
+      command: ['sh', 'migrate.sh'],
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: 'migrate' }),
       environment: {
+        NODE_ENV: 'production',
+        PORT: '3000',
         DB_HOST: props.db.dbInstanceEndpointAddress,
         DB_PORT: '5432',
         DB_NAME: 'app',
+        BETTER_AUTH_SECRET: 'not-needed-for-migration',
+        BETTER_AUTH_URL: 'http://localhost:3000',
+        GOOGLE_CLIENT_ID: 'not-needed-for-migration',
+        GOOGLE_CLIENT_SECRET: 'not-needed-for-migration',
+        FRONTEND_URL: 'http://localhost:5173',
       },
       secrets: {
         DB_PASSWORD: ecs.Secret.fromSecretsManager(
