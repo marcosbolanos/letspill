@@ -44,7 +44,7 @@ export class MigrateTask extends Construct {
 
     this.taskDefinition.addContainer('Migrate', {
       image: image,
-      command: ['sh', 'migrate.sh'],
+      command: ['pnpm', 'drizzle-kit', 'migrate'],
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: 'migrate' }),
       environment: {
         NODE_ENV: 'production',
