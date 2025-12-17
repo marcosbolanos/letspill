@@ -4,9 +4,6 @@ import CONFIG from '../envconfig';
 
 const pool = new Pool({
   connectionString: CONFIG.DB_CONNECTION_STRING!,
-  ssl: {
-    rejectUnauthorized: false
-  }
 })
 
 export const db = drizzle({ client: pool });

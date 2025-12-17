@@ -6,6 +6,6 @@ export default defineConfig({
   schema: './src/db/schema',
   dialect: 'postgresql',
   dbCredentials: {
-    url: `${CONFIG.DB_CONNECTION_STRING}?sslmode=require`, // Add SSL to URL
+    url: CONFIG.DB_CONNECTION_STRING!, // Add SSL to URL
   },
 });
