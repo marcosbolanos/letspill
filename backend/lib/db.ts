@@ -1,6 +1,14 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import CONFIG from '../envconfig';
 
-export const db = drizzle(CONFIG.DB_CONNECTION_STRING!);
+const pool = new Pool({
+  connectionString: CONFIG.DB_CONNECTION_STRING!,
+  ssl: {
+    rejectUnauthorized: false
+  }
+})
+
+export const db = drizzle({ client: pool });
 
 export type DBType = typeof db;

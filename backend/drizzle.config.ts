@@ -7,5 +7,6 @@ export default defineConfig({
   dialect: 'postgresql',
   dbCredentials: {
     url: CONFIG.DB_CONNECTION_STRING!,
+    ssl: "require",
   },
 });

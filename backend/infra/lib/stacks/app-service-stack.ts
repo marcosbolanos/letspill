@@ -5,7 +5,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import { AppTask } from '../constructs/app-task';
 
-interface FargateServiceStackProps extends StackProps {
+interface AppServiceStackProps extends StackProps {
   serviceId: string
   vpc: ec2.IVpc
   appSg: ec2.SecurityGroup
@@ -17,10 +17,10 @@ interface FargateServiceStackProps extends StackProps {
   betterAuthUrl: string
 }
 
-export class FargateServiceStack extends Stack {
+export class AppServiceStack extends Stack {
   public readonly service: ecs.FargateService
 
-  constructor(scope: Construct, id: string, props: FargateServiceStackProps) {
+  constructor(scope: Construct, id: string, props: AppServiceStackProps) {
     super(scope, id, props)
 
     const appTask = new AppTask(this, 'AppTask', {
@@ -32,6 +32,7 @@ export class FargateServiceStack extends Stack {
     })
 
     this.service = new ecs.FargateService(this, props.serviceId, {
+      serviceName: props.serviceId,
       taskDefinition: appTask.taskDefinition,
       cluster: props.cluster,
       securityGroups: [props.appSg],

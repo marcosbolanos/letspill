@@ -4,7 +4,7 @@ import 'dotenv/config'
 
 import nodeEnv from '../lib/shared/env';
 import { NetworkStack } from '../lib/stacks/network-stack'
-import { FargateServiceStack } from '../lib/stacks/fargate-service-stack';
+import { AppServiceStack } from '../lib/stacks/app-service-stack';
 import { MigrateServiceStack } from '../lib/stacks/migrate-service-stack';
 import { RdbDbStack } from '../lib/stacks/rds-stack';
 import { EcrStack } from '../lib/stacks/ecr-stack';
@@ -54,9 +54,9 @@ const ecrStack = new EcrStack(app, 'EcrStack', {
   repositoryName: appName.toLowerCase()
 })
 
-const appFargateServiceStack = new FargateServiceStack(app, "FargateServiceStack", {
+const appServiceStack = new AppServiceStack(app, "AppServiceStack", {
   env,
-  serviceId: appPrefix,
+  serviceId: `${appPrefix}AppService`,
   vpc,
   appSg: appSg,
   cluster: cluster,
@@ -69,7 +69,7 @@ const appFargateServiceStack = new FargateServiceStack(app, "FargateServiceStack
 
 const migrateServiceStack = new MigrateServiceStack(app, "MigrateServiceStack", {
   env,
-  taskId: `${appPrefix}MigrateTask`,
+  serviceId: `${appPrefix}MigrateService`,
   vpc,
   appSg: appSg,
   cluster: cluster,
