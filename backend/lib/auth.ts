@@ -13,7 +13,7 @@ export const auth = betterAuth({
   trustedOrigins: [
     "letspill://*",
     "http://localhost:8081/*",
-    "http://CommonProdAlb-18478446.eu-west-3.elb.amazonaws.com/*",
+    "http://CommonProdAlb-18478446.eu-west-3.elb.amazonaws.com",
     ...(ENV_CONFIG.NODE_ENV === "development" ? [
       "exp://*/*",                 // Trust all Expo development URLs
       "exp://10.0.0.*:*/*",        // Trust 10.0.0.x IP range

@@ -12,6 +12,7 @@ const prefixes = {
   development: 'Dev',
   production: 'Prod'
 }
+
 const appName = 'Letspill'
 const prefix = `${prefixes[nodeEnv]}`; // Dev or Prod
 const appPrefix = `${prefix}${appName}` // DevLetspill, ProdLetspill
@@ -69,7 +70,7 @@ const appServiceStack = new AppServiceStack(app, "AppServiceStack", {
   appSecretName: `${prefix}LetspillAppSecrets`,
   mobileUrl: process.env.MOBILE_URL || 'letspill://',
   webUrl: process.env.WEB_URL || 'http://localhost:8081',
-  betterAuthUrl: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
+  betterAuthUrl: process.env.BETTER_AUTH_URL || isProd ? 'http://CommonProdAlb-18478446.eu-west-3.elb.amazonaws.com' : 'http://localhost:3000',
   // For Prod: import shared ALB from common infra using CloudFormation exports
   ...(isProd && {
     albListenerArn: cdk.Fn.importValue('CommonProdAlb-ListenerArn'),
