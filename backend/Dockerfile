@@ -41,7 +41,8 @@ WORKDIR /home/$USER/app
 
 FROM node:24.12.0-trixie AS prod
 
-RUN corepack enable
+# Pre-download pnpm so it doesn't need internet at runtime
+RUN corepack enable && corepack prepare pnpm@9.12.2 --activate
 
 # Set default user
 ARG USER=node
