@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, StyleSheet, Text, Platform } from "react-native";
 import { authClient } from "@/utils/auth-client";
+import { apiUrl } from "@/utils/envconfig";
 import { Button } from "@/components/ui/button";
 import ErrorScreen from "@/components/error-screen";
 
@@ -9,9 +10,10 @@ export default function SocialSignIn() {
   const handleLogin = async () => {
     try {
       const callbackPath = Platform.OS === 'web' ? '/login/redirect/web' : '/login/redirect/mobile';
+      const callbackURL = `${apiUrl}${callbackPath}`;
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: callbackPath
+        callbackURL: callbackURL
       })
     } catch (e) {
       setError(true)
