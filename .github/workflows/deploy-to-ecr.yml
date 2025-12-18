@@ -8,7 +8,7 @@ on:
 
 env:
   AWS_REGION: eu-west-3
-  ECR_REPOSITORY: letspill
+  ECR_REPOSITORY: letspill-dev
     
 permissions:
   id-token: write   # Required for OIDC
