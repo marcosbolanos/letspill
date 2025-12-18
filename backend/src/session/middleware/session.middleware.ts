@@ -9,8 +9,8 @@ const sessionMiddleware = createMiddleware(async (c, next) => {
     await next();
     return;
   }
-  c.set("user", session.user);
-  c.set("session", session.session);
+  c.set("user", session.user || {});
+  c.set("session", session.session || {});
   await next();
 });
 export default sessionMiddleware;
