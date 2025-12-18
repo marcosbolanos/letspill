@@ -10,16 +10,25 @@ import { userProfiles } from "src/db/schema/user-profiles.schema"
 
 export const auth = betterAuth({
   plugins: [expo()],
-  trustedOrigins: [
-    "letspill://*",
-    "http://localhost:8081",
-    ...(ENV_CONFIG.NODE_ENV === "development" ? [
-      "exp://*/*",                 // Trust all Expo development URLs
-      "exp://10.0.0.*:*/*",        // Trust 10.0.0.x IP range
-      "exp://192.168.*.*:*/*",     // Trust 192.168.x.x IP range
-      "exp://172.*.*.*:*/*",       // Trust 172.x.x.x IP range
-      "exp://localhost:*/*"        // Trust localhost
-    ] : [])],
+  trustedOrigins: (request) => {
+    const origin = request.headers.get("origin");
+
+    // Always trust the app's custom scheme
+    if (origin?.startsWith("letspill://")) return true;
+
+    // In development, trust localhost on any port
+    if (ENV_CONFIG.NODE_ENV === "development") {
+      if (!origin) return true; // Mobile apps may not send origin
+      if (origin.startsWith("http://localhost:")) return true;
+      if (origin.startsWith("http://127.0.0.1:")) return true;
+      if (origin.startsWith("exp://")) return true;
+    }
+
+    // For production mobile apps that don't send an origin header
+    if (!origin) return true;
+
+    return false;
+  },
   database: drizzleAdapter(db, {
     provider: "pg",
     schema

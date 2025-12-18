@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { authClient } from '../utils/auth-client';
 import { Platform } from 'react-native';
+import { apiUrl } from '@/utils/envconfig';
 
 const getBaseURL = () => {
   if (Platform.OS === "android") {
@@ -10,7 +11,7 @@ const getBaseURL = () => {
 };
 
 const apiClient = axios.create({
-  baseURL: getBaseURL(),
+  baseURL: apiUrl,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

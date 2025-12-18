@@ -67,7 +67,8 @@ const appServiceStack = new AppServiceStack(app, "AppServiceStack", {
   repositoryName: ecrRepositoryName,
   db,
   appSecretName: `${prefix}LetspillAppSecrets`,
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
+  mobileUrl: process.env.MOBILE_URL || 'letspill://',
+  webUrl: process.env.WEB_URL || 'http://localhost:8081',
   betterAuthUrl: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   // For Prod: import shared ALB from common infra using CloudFormation exports
   ...(isProd && {

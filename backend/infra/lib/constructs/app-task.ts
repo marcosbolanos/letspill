@@ -9,7 +9,8 @@ interface AppTaskProps {
   repositoryName: string;
   db: rds.DatabaseInstance;
   appSecretName: string;
-  frontendUrl: string;
+  mobileUrl: string;
+  webUrl: string;
   betterAuthUrl: string;
 }
 
@@ -64,7 +65,8 @@ export class AppTask extends Construct {
         DB_HOST: props.db.dbInstanceEndpointAddress,
         DB_PORT: '5432',
         DB_NAME: 'app',
-        FRONTEND_URL: props.frontendUrl,
+        MOBILE_URL: props.mobileUrl,
+        WEB_URL: props.webUrl,
         BETTER_AUTH_URL: props.betterAuthUrl,
       },
       secrets: {

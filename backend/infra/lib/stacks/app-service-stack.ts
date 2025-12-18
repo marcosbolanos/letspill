@@ -15,7 +15,8 @@ interface AppServiceStackProps extends StackProps {
   repositoryName: string
   db: rds.DatabaseInstance
   appSecretName: string
-  frontendUrl: string
+  mobileUrl: string
+  webUrl: string
   betterAuthUrl: string
   // Optional: provide ALB ARNs to register with shared ALB (for cross-stack imports)
   albListenerArn?: string
@@ -36,7 +37,8 @@ export class AppServiceStack extends Stack {
       repositoryName: props.repositoryName,
       db: props.db,
       appSecretName: props.appSecretName,
-      frontendUrl: props.frontendUrl,
+      mobileUrl: props.mobileUrl,
+      webUrl: props.webUrl,
       betterAuthUrl: props.betterAuthUrl,
     })
 

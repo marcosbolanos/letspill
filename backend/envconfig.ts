@@ -13,7 +13,9 @@ const envSchema = z.object({
   BETTER_AUTH_URL: z.string(),
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
-  FRONTEND_URL: z.string(),
+  // OAuth redirect URLs
+  MOBILE_URL: z.string().optional(), // Deep link for mobile (default: letspill://)
+  WEB_URL: z.string().optional(),    // Web frontend URL (default: http://localhost:8081)
   DB_CONNECTION_STRING: z.string().optional()
 });
 
