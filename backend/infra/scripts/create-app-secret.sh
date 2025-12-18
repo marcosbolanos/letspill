@@ -11,8 +11,8 @@ read -p "GOOGLE_CLIENT_SECRET: " GOOGLE_CLIENT_SECRET
 
 # Create the secret
 aws secretsmanager create-secret \
-  --name DevLetspillAppSecrets \
-  --description "Application secrets for Letspill Dev" \
+  --name ProdLetspillAppSecrets \
+  --description "Application secrets for Letspill Prod" \
   --secret-string "{\"BETTER_AUTH_SECRET\":\"$RANDOM_SECRET\",\"GOOGLE_CLIENT_ID\":\"$GOOGLE_CLIENT_ID\",\"GOOGLE_CLIENT_SECRET\":\"$GOOGLE_CLIENT_SECRET\"}" \
   --region eu-west-3
 

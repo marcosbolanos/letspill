@@ -77,4 +77,3 @@ export class AppTask extends Construct {
     });
   }
 }
-

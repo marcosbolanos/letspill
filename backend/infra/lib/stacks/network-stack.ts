@@ -40,7 +40,8 @@ export class NetworkStack extends Stack {
       vpc: this.vpc,
     });
 
-    this.dbSg.addIngressRule(this.appSg, ec2.Port.tcp(5432));
+    // Allow ECS tasks (appSg) to connect to RDS
+    this.dbSg.addIngressRule(this.appSg, ec2.Port.tcp(5432), 'Allow PostgreSQL from ECS');
 
     // Add VPC endpoints for AWS services (required for private subnets without NAT)
     this.vpc.addInterfaceEndpoint('SecretsManagerEndpoint', {

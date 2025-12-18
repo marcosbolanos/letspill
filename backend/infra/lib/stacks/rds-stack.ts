@@ -28,6 +28,7 @@ export class RdbDbStack extends Stack {
       engine: rds.DatabaseInstanceEngine.postgres({
         version: rds.PostgresEngineVersion.VER_17_7,
       }),
+      instanceIdentifier: props.dbId,
       vpc: props.vpc,
       vpcSubnets: {
         subnetType: ec2.SubnetType.PRIVATE_ISOLATED,

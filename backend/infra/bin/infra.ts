@@ -5,7 +5,6 @@ import 'dotenv/config'
 import nodeEnv from '../lib/shared/env';
 import { NetworkStack } from '../lib/stacks/network-stack'
 import { AppServiceStack } from '../lib/stacks/app-service-stack';
-import { MigrateServiceStack } from '../lib/stacks/migrate-service-stack';
 import { RdbDbStack } from '../lib/stacks/rds-stack';
 import { EcrStack } from '../lib/stacks/ecr-stack';
 
@@ -16,6 +15,7 @@ const prefixes = {
 const appName = 'Letspill'
 const prefix = `${prefixes[nodeEnv]}`; // Dev or Prod
 const appPrefix = `${prefix}${appName}` // DevLetspill, ProdLetspill
+const ecrRepositoryName = appName.toLowerCase() + '-' + prefix.toLowerCase() // letspill-dev
 
 const app = new cdk.App();
 
@@ -51,28 +51,29 @@ const db = rdbDbStack.db
 
 const ecrStack = new EcrStack(app, 'EcrStack', {
   env,
-  repositoryName: appName.toLowerCase()
+  repositoryName: ecrRepositoryName
 })
+
+// For Prod, import the shared ALB from common infra
+// For Dev, just use the ECS service directly (no ALB)
+const isProd = nodeEnv === 'production';
 
 const appServiceStack = new AppServiceStack(app, "AppServiceStack", {
   env,
   serviceId: `${appPrefix}AppService`,
   vpc,
-  appSg: appSg,
-  cluster: cluster,
-  repositoryName: appName.toLowerCase(),
-  db: db,
+  appSg,
+  cluster,
+  repositoryName: ecrRepositoryName,
+  db,
   appSecretName: `${prefix}LetspillAppSecrets`,
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   betterAuthUrl: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
-})
-
-const migrateServiceStack = new MigrateServiceStack(app, "MigrateServiceStack", {
-  env,
-  serviceId: `${appPrefix}MigrateService`,
-  vpc,
-  appSg: appSg,
-  cluster: cluster,
-  repositoryName: appName.toLowerCase(),
-  db: db
-})
+  // For Prod: import shared ALB from common infra using CloudFormation exports
+  ...(isProd && {
+    albListenerArn: cdk.Fn.importValue('CommonProdAlb-ListenerArn'),
+    albSecurityGroupId: cdk.Fn.importValue('CommonProdAlb-SecurityGroupId'),
+    pathPattern: '/*',
+    listenerPriority: 100,
+  }),
+});
