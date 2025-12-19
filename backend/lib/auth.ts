@@ -11,7 +11,6 @@ import { userProfiles } from "src/db/schema/user-profiles.schema"
 export const auth = betterAuth({
   plugins: [expo()],
   trustedOrigins: [
-    "null",                        // Native mobile apps send null Origin
     "letspill://*",
     "http://localhost:8081/*",
     "http://CommonProdAlb-18478446.eu-west-3.elb.amazonaws.com",
@@ -36,8 +35,10 @@ export const auth = betterAuth({
     }
   },
   // Allow non-HTTPS cookies (required for HTTP ALB)
+  // disableCSRFCheck required for mobile apps that send null Origin header
   advanced: {
-    useSecureCookies: false
+    useSecureCookies: false,
+    disableCSRFCheck: true
   },
   // Automatically create an entry in Profiles and Preferences for new users
   databaseHooks: {
