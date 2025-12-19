@@ -11,6 +11,7 @@ import { userProfiles } from "src/db/schema/user-profiles.schema"
 export const auth = betterAuth({
   plugins: [expo()],
   trustedOrigins: [
+    "null",                        // Native mobile apps send null Origin
     "letspill://*",
     "http://localhost:8081/*",
     "http://CommonProdAlb-18478446.eu-west-3.elb.amazonaws.com",
