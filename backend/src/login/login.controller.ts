@@ -2,6 +2,22 @@ import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
 
 const loginController = new OpenAPIHono();
 
+// Default redirect -  we'll see if Better Auth just uses this one all the tile
+
+const redirectRoute = createRoute({
+  method: 'get',
+  path: '/redirect',
+  tags: ['Login'],
+  responses: {
+    302: { description: 'Redirect to mobile app via deep link' },
+  },
+});
+
+loginController.openapi(redirectRoute, async (c) => {
+  const MOBILE_URL = process.env.MOBILE_URL || 'letspill://';
+  return c.redirect(MOBILE_URL);
+});
+
 // Mobile redirect - uses deep link scheme
 const mobileRedirectRoute = createRoute({
   method: 'get',

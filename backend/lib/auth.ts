@@ -34,6 +34,10 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     }
   },
+  // Allow non-HTTPS cookies (required for HTTP ALB)
+  advanced: {
+    useSecureCookies: false
+  },
   // Automatically create an entry in Profiles and Preferences for new users
   databaseHooks: {
     user: {
